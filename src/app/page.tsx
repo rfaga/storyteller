@@ -207,110 +207,91 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Game Editor</h1>
-        <button
-          onClick={() => setIsSettingsOpen(true)}
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80"
-        >
-          Game Settings
-        </button>
+    <div className="flex flex-col h-screen">
+      <div className="flex justify-between items-center p-4 bg-gray-800">
+        <h1 className="text-2xl font-bold text-white">Game Editor</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab("gui")}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === "gui"
+                ? "bg-primary text-white"
+                : "bg-gray-700 text-gray-300"
+            }`}
+          >
+            GUI Editor
+          </button>
+          <button
+            onClick={() => setActiveTab("code")}
+            className={`px-4 py-2 rounded-lg ${
+              activeTab === "code"
+                ? "bg-primary text-white"
+                : "bg-gray-700 text-gray-300"
+            }`}
+          >
+            Code Editor
+          </button>
+          <button
+            onClick={() => setIsSettingsOpen(true)}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80"
+          >
+            Game Settings
+          </button>
+        </div>
       </div>
 
-      <div className="bg-secondary p-4 rounded-lg">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setActiveTab("gui")}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === "gui"
-                  ? "bg-primary text-white"
-                  : "bg-gray-700 text-gray-300"
-              }`}
-            >
-              GUI Editor
-            </button>
-            <button
-              onClick={() => setActiveTab("code")}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === "code"
-                  ? "bg-primary text-white"
-                  : "bg-gray-700 text-gray-300"
-              }`}
-            >
-              Code Editor
-            </button>
-          </div>
-          {activeTab === "gui" && (
-            <select
-              value={selectedSprite}
-              onChange={(e) => setSelectedSprite(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-primary text-white"
-            >
-              <option value="player1">Player 1</option>
-              <option value="obstacle1">Obstacle 1</option>
-              <option value="obstacle2">Obstacle 2</option>
-            </select>
-          )}
-        </div>
-
-        <div className="relative w-full h-[600px] bg-black rounded-lg overflow-hidden">
-          {activeTab === "gui" ? (
-            <div
-              ref={gameAreaRef}
-              className="absolute inset-0"
-              onClick={handleGameAreaClick}
-              onMouseMove={handleObjectDrag}
-              onMouseUp={handleObjectDragEnd}
-              onMouseLeave={handleObjectDragEnd}
-            >
-              <GameScene objects={gameObjects} />
-            </div>
-          ) : (
-            <CodeEditor
-              code={gameCode}
-              onChange={setGameCode}
-              language="typescript"
-            />
-          )}
-        </div>
+      <div className="flex-1 overflow-hidden">
+        {activeTab === "gui" ? (
+          <GameScene objects={gameObjects} />
+        ) : (
+          <CodeEditor
+            code={gameCode}
+            onChange={setGameCode}
+            language="typescript"
+          />
+        )}
       </div>
 
       {/* Settings Modal */}
       {isSettingsOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-secondary p-6 rounded-lg w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">Game Settings</h2>
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4 text-white">
+              Game Settings
+            </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm mb-2">Game Name</label>
+                <label className="block text-sm mb-2 text-white">
+                  Game Name
+                </label>
                 <input
                   type="text"
                   value={gameName}
                   onChange={(e) => setGameName(e.target.value)}
                   placeholder="Enter game name"
-                  className="w-full px-4 py-2 rounded-lg bg-primary text-white"
+                  className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
                 />
               </div>
 
               <button
                 onClick={saveGame}
                 disabled={isLoading}
-                className="w-full bg-accent hover:bg-accent/80 px-4 py-2 rounded-lg disabled:opacity-50"
+                className="w-full bg-primary hover:bg-primary/80 px-4 py-2 rounded-lg disabled:opacity-50 text-white"
               >
                 {isLoading ? "Saving..." : "Save Game"}
               </button>
 
               {savedGames.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Saved Games</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-white">
+                    Saved Games
+                  </h3>
                   <div className="space-y-2">
                     {savedGames.map((game) => (
                       <button
                         key={game.name}
                         onClick={() => loadGame(game)}
-                        className="w-full bg-primary hover:bg-primary/80 px-4 py-2 rounded-lg text-left"
+                        className="w-full bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-left text-white"
                       >
                         {game.name}
                       </button>
@@ -321,7 +302,7 @@ export default function Home() {
 
               <button
                 onClick={() => setIsSettingsOpen(false)}
-                className="w-full bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg"
+                className="w-full bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-white"
               >
                 Close
               </button>
