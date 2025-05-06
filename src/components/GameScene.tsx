@@ -3,16 +3,77 @@
 import { useEffect, useRef } from "react";
 import Phaser from "phaser";
 
-interface GameSceneProps {
-  code: string;
+interface GameObject {
+  id: string;
+  type: "player" | "obstacle";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  sprite: string;
 }
 
-export default function GameScene({ code }: GameSceneProps) {
+interface GameSceneProps {
+  objects: GameObject[];
+}
+
+export default function GameScene({ objects }: GameSceneProps) {
   const gameRef = useRef<Phaser.Game | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
+
+    class MainScene extends Phaser.Scene {
+      private gameObjects: Map<string, Phaser.Physics.Arcade.Sprite> =
+        new Map();
+      private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+
+      constructor() {
+        super({ key: "MainScene" });
+      }
+
+      create() {
+        // Create game objects based on the provided objects
+        objects.forEach((obj) => {
+          const gameObject = this.physics.add.sprite(
+            obj.x,
+            obj.y,
+            "placeholder"
+          );
+          gameObject.setDisplaySize(obj.width, obj.height);
+          gameObject.setTint(obj.type === "player" ? 0x3b82f6 : 0xef4444);
+          gameObject.setData("type", obj.type);
+          this.gameObjects.set(obj.id, gameObject);
+        });
+
+        // Set up keyboard controls
+        this.cursors = this.input.keyboard.createCursorKeys();
+      }
+
+      update() {
+        // Find the player object
+        const player = Array.from(this.gameObjects.values()).find(
+          (obj) => obj.getData("type") === "player"
+        );
+
+        if (player && player.body) {
+          // Handle player movement
+          if (this.cursors.left.isDown) {
+            player.setVelocityX(-160);
+          } else if (this.cursors.right.isDown) {
+            player.setVelocityX(160);
+          } else {
+            player.setVelocityX(0);
+          }
+
+          // Handle jumping
+          if (this.cursors.up.isDown && player.body.touching.down) {
+            player.setVelocityY(-330);
+          }
+        }
+      }
+    }
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -26,17 +87,7 @@ export default function GameScene({ code }: GameSceneProps) {
           debug: false,
         },
       },
-      scene: {
-        preload: function () {
-          // Load game assets
-        },
-        create: function () {
-          // Create game objects
-        },
-        update: function () {
-          // Update game state
-        },
-      },
+      scene: MainScene,
     };
 
     try {
@@ -57,18 +108,32 @@ export default function GameScene({ code }: GameSceneProps) {
     };
   }, []);
 
-  // Update game when code changes
+  // Update game objects when they change
   useEffect(() => {
     if (gameRef.current) {
-      try {
-        // Here you would implement the code to update the game with the new code
-        // For now, we'll just log that the code changed
-        console.log("Game code updated:", code);
-      } catch (error) {
-        console.error("Error updating game code:", error);
+      const scene = gameRef.current.scene.getScene("MainScene");
+      if (scene && scene.children) {
+        // Clear existing objects
+        scene.children.list.forEach((child) => {
+          if (child instanceof Phaser.Physics.Arcade.Sprite) {
+            child.destroy();
+          }
+        });
+
+        // Create new objects
+        objects.forEach((obj) => {
+          const gameObject = scene.physics.add.sprite(
+            obj.x,
+            obj.y,
+            "placeholder"
+          );
+          gameObject.setDisplaySize(obj.width, obj.height);
+          gameObject.setTint(obj.type === "player" ? 0x3b82f6 : 0xef4444);
+          gameObject.setData("type", obj.type);
+        });
       }
     }
-  }, [code]);
+  }, [objects]);
 
   return (
     <div
