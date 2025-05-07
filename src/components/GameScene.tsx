@@ -14,6 +14,7 @@ interface GameObject {
   sprite: string;
   name?: string;
   description?: string;
+  shape?: "rectangle" | "circle";
 }
 
 interface GameSceneProps {
@@ -78,18 +79,25 @@ export default function GameScene({
             const shape = this.add.graphics();
             shape.lineStyle(2, 0xffffff);
             shape.fillStyle(0xef4444, 0.5);
-            shape.fillRect(
-              -obj.width / 2,
-              -obj.height / 2,
-              obj.width,
-              obj.height
-            );
-            shape.strokeRect(
-              -obj.width / 2,
-              -obj.height / 2,
-              obj.width,
-              obj.height
-            );
+
+            if (obj.shape === "circle") {
+              shape.fillCircle(0, 0, obj.width / 2);
+              shape.strokeCircle(0, 0, obj.width / 2);
+            } else {
+              shape.fillRect(
+                -obj.width / 2,
+                -obj.height / 2,
+                obj.width,
+                obj.height
+              );
+              shape.strokeRect(
+                -obj.width / 2,
+                -obj.height / 2,
+                obj.width,
+                obj.height
+              );
+            }
+
             container.add(shape);
           } else {
             const sprite = this.add.sprite(0, 0, "placeholder");
@@ -191,6 +199,7 @@ export default function GameScene({
               sprite: "placeholder",
               name: `Prop ${localObjects.length + 1}`,
               description: "A new prop",
+              shape: selectedTool === "circle" ? "circle" : "rectangle",
             };
 
             const updatedObjects = [...localObjects, newObject];
@@ -343,18 +352,25 @@ export default function GameScene({
             const shape = scene.add.graphics();
             shape.lineStyle(2, 0xffffff);
             shape.fillStyle(0xef4444, 0.5);
-            shape.fillRect(
-              -obj.width / 2,
-              -obj.height / 2,
-              obj.width,
-              obj.height
-            );
-            shape.strokeRect(
-              -obj.width / 2,
-              -obj.height / 2,
-              obj.width,
-              obj.height
-            );
+
+            if (obj.shape === "circle") {
+              shape.fillCircle(0, 0, obj.width / 2);
+              shape.strokeCircle(0, 0, obj.width / 2);
+            } else {
+              shape.fillRect(
+                -obj.width / 2,
+                -obj.height / 2,
+                obj.width,
+                obj.height
+              );
+              shape.strokeRect(
+                -obj.width / 2,
+                -obj.height / 2,
+                obj.width,
+                obj.height
+              );
+            }
+
             container.add(shape);
           } else {
             const sprite = scene.add.sprite(0, 0, "placeholder");
