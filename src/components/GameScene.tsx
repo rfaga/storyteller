@@ -70,6 +70,14 @@ export default function GameScene({
         super({ key: "MainScene" });
       }
 
+      preload() {
+        // Add a placeholder texture
+        this.load.image(
+          "placeholder",
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+        );
+      }
+
       create() {
         // Create game objects based on the provided objects
         localObjects.forEach((obj) => {
@@ -100,10 +108,18 @@ export default function GameScene({
 
             container.add(shape);
           } else {
-            const sprite = this.add.sprite(0, 0, "placeholder");
-            sprite.setDisplaySize(obj.width, obj.height);
-            sprite.setTint(obj.type === "character" ? 0x3b82f6 : 0x22c55e);
-            container.add(sprite);
+            // Check if the sprite key exists in the texture manager
+            if (this.textures.exists(obj.sprite)) {
+              const sprite = this.add.sprite(0, 0, obj.sprite);
+              sprite.setDisplaySize(obj.width, obj.height);
+              container.add(sprite);
+            } else {
+              // Fallback to placeholder if texture doesn't exist
+              const sprite = this.add.sprite(0, 0, "placeholder");
+              sprite.setDisplaySize(obj.width, obj.height);
+              sprite.setTint(obj.type === "character" ? 0x3b82f6 : 0x22c55e);
+              container.add(sprite);
+            }
           }
 
           container.setData("type", obj.type);
@@ -373,10 +389,18 @@ export default function GameScene({
 
             container.add(shape);
           } else {
-            const sprite = scene.add.sprite(0, 0, "placeholder");
-            sprite.setDisplaySize(obj.width, obj.height);
-            sprite.setTint(obj.type === "character" ? 0x3b82f6 : 0x22c55e);
-            container.add(sprite);
+            // Check if the sprite key exists in the texture manager
+            if (scene.textures.exists(obj.sprite)) {
+              const sprite = scene.add.sprite(0, 0, obj.sprite);
+              sprite.setDisplaySize(obj.width, obj.height);
+              container.add(sprite);
+            } else {
+              // Fallback to placeholder if texture doesn't exist
+              const sprite = scene.add.sprite(0, 0, "placeholder");
+              sprite.setDisplaySize(obj.width, obj.height);
+              sprite.setTint(obj.type === "character" ? 0x3b82f6 : 0x22c55e);
+              container.add(sprite);
+            }
           }
 
           container.setData("type", obj.type);
@@ -409,25 +433,49 @@ export default function GameScene({
     reader.onload = (event) => {
       if (!event.target?.result) return;
 
-      const newObject: GameObject = {
-        id: Date.now().toString(),
-        type: "character",
-        x: 100,
-        y: 100,
-        width: 100,
-        height: 100,
-        rotation: 0,
-        sprite: "placeholder",
-        name: `Character ${localObjects.length + 1}`,
-        description: "A new character",
-      };
+      // Create a unique key for the image
+      const imageKey = `image_${Date.now()}`;
 
-      const updatedObjects = [...localObjects, newObject];
-      setLocalObjects(updatedObjects);
-      onObjectsChange?.(updatedObjects);
+      // Add the image to Phaser's texture manager
+      const scene = gameRef.current?.scene.getScene("MainScene");
+      if (scene) {
+        // Create a temporary image element
+        const img = new Image();
+        img.src = event.target.result as string;
 
-      // Switch back to selection tool after uploading an image
-      setSelectedTool("select");
+        img.onload = () => {
+          // Create a canvas to draw the image
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+
+          // Draw the image onto the canvas
+          ctx.drawImage(img, 0, 0);
+
+          // Add the canvas as a texture
+          scene.textures.addCanvas(imageKey, canvas);
+
+          const newObject: GameObject = {
+            id: Date.now().toString(),
+            type: "character",
+            x: 100,
+            y: 100,
+            width: img.width,
+            height: img.height,
+            rotation: 0,
+            sprite: imageKey,
+            name: `Image ${localObjects.length + 1}`,
+            description: "An uploaded image",
+          };
+
+          const updatedObjects = [...localObjects, newObject];
+          setLocalObjects(updatedObjects);
+          onObjectsChange?.(updatedObjects);
+          setSelectedTool("select");
+        };
+      }
     };
     reader.readAsDataURL(file);
   };
